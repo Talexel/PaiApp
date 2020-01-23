@@ -16,8 +16,8 @@ class MainActivity: AppCompatActivity() {
         setSupportActionBar(toolbar)
 
         val navController = Navigation.findNavController(this, R.id.nav_fragment)
-        NavigationUI.setupWithNavController(toolbar, navController)
-        NavigationUI.setupActionBarWithNavController(this, navController)
+        NavigationUI.setupWithNavController(nav_view, navController)
+        NavigationUI.setupActionBarWithNavController(this, navController, main_drawer_layout)
     }
 
     override fun onSupportNavigateUp(): Boolean {

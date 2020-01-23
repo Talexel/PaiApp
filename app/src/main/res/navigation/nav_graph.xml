@@ -20,4 +20,5 @@
         android:name="com.talexel.paiapp.ui.spin.spinFragment.SpinFragment"
         android:label="fragment_spin"
         tools:layout="@layout/fragment_spin" />
+
 </navigation>
