@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "280797135224",
+    "firebase_url": "https://spinoearn-247df.firebaseio.com",
+    "project_id": "spinoearn-247df",
+    "storage_bucket": "spinoearn-247df.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:280797135224:android:d701b8e33b062d89ef888d",
+        "android_client_info": {
+          "package_name": "com.talexel.paiapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "280797135224-6k80ahq43ca6d0jlgq8u3kphdslqebje.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.talexel.paiapp",
+            "certificate_hash": "81101d2b6fd5ea897267d4bd350dc3430363b0f9"
+          }
+        },
+        {
+          "client_id": "280797135224-fuqu06m4ot69vol67kuv0iguc1fkb6bo.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC4mvsDBurvTWu5JbJyuAIU7LMNOq2A_dQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "280797135224-fuqu06m4ot69vol67kuv0iguc1fkb6bo.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
