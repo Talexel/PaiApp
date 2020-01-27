@@ -1,12 +1,16 @@
 package com.talexel.paiapp.ui.login
 
 import android.app.Activity
+import android.content.Context
+import android.content.Intent
 import android.util.Log
 import android.widget.Toast
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.google.firebase.FirebaseException
 import com.google.firebase.auth.PhoneAuthCredential
 import com.google.firebase.auth.PhoneAuthProvider
+import com.talexel.paiapp.data.database.entities.User
 import com.talexel.paiapp.data.database.repositories.AuthRepository
 import com.talexel.paiapp.ui.interfaces.PhoneNumberSignUpInterface
 import com.talexel.paiapp.ui.spin.MainActivity
@@ -16,9 +20,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.lang.Exception
 import java.lang.ref.WeakReference
+import java.util.*
 import java.util.concurrent.TimeUnit
 
 class LoginViewModel(
+    private val activity: Activity,
     private val authRepository: AuthRepository
 ) : ViewModel() {
 
@@ -26,23 +32,37 @@ class LoginViewModel(
         val OTP_TIME_OUT_TIME = 60L
         val OTP_TIME_OUT_UNITS = TimeUnit.SECONDS
 
+        enum class SignupState(val v: Int) {
+            NIL(-1),
+            PHONE_SCREEN(0),
+            OTP_SCREEN(1),
+            AUTHENTICATED(2),
+            REFERRAL_CODE(999);
+
+            companion object {
+                fun from(v: Int) = values().first { it.v == v }
+            }
+        }
+
         val TAG = LoginViewModel::class.java.canonicalName
+    }
+
+    var signupStateLive = MutableLiveData<SignupState>()
+
+    init {
+        signupStateLive.postValue(SignupState.PHONE_SCREEN)
     }
 
     var phoneNumber: String? = null
     var countryCode: String? = null
     var otpCode: String? = null
 
-    lateinit var activityRef: WeakReference<Activity>
-
-    var loginUpdateListener: PhoneNumberSignUpInterface? = null
     var phoneAuthCredential: PhoneAuthCredential? = null
 
     var verificationId: String? = null
 
     private val phoneVerificationCallback = object: PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
         override fun onCodeSent(p0: String, p1: PhoneAuthProvider.ForceResendingToken) {
-            loginUpdateListener?.onPhoneEntered()
             Log.d(TAG, "Listening for Code Sent.")
             verificationId = p0
         }
@@ -72,34 +92,28 @@ class LoginViewModel(
 
     fun updatePhoneNumber(){
         if(
-            activityRef.get() == null ||
-            !Utils.verifyNonEmpty(activityRef.get()!!.applicationContext, countryCode, "Country Code") ||
-            !Utils.verifyNonEmpty(activityRef.get()!!.applicationContext, phoneNumber, "Phone Number")
+            !Utils.verifyNonEmpty(activity.applicationContext, countryCode, "Country Code") ||
+            !Utils.verifyNonEmpty(activity.applicationContext, phoneNumber, "Phone Number")
         ) return
-
         PhoneAuthProvider.getInstance().verifyPhoneNumber(
             getPhoneFormatted(),
             OTP_TIME_OUT_TIME,
             OTP_TIME_OUT_UNITS,
-            activityRef.get() as Activity,
+            activity,
             phoneVerificationCallback
         )
+        updateState(SignupState.OTP_SCREEN)
     }
 
     fun submittedOTP(){
 
-        activityRef.get()?.let {
-
-            if(
-                Utils.verifyNonEmpty(it.applicationContext, verificationId, "Verification Code") &&
-                Utils.verifyNonEmpty(it.applicationContext, otpCode, "OTPCode")
-            ) {
-                phoneAuthCredential = PhoneAuthProvider.getCredential(verificationId!!, otpCode!!)
-                onOTPEntered()
-            }
-
+        if(
+            Utils.verifyNonEmpty(activity.applicationContext, verificationId, "Verification Code") &&
+            Utils.verifyNonEmpty(activity.applicationContext, otpCode, "OTPCode")
+        ) {
+            phoneAuthCredential = PhoneAuthProvider.getCredential(verificationId!!, otpCode!!)
+            onOTPEntered()
         }
-
 
     }
 
@@ -110,7 +124,21 @@ class LoginViewModel(
                 CoroutineScope(Dispatchers.Main).launch {
                     try {
                         authRepository.signIn(it)
-                        loginUpdateListener?.onOTPVerified(MainActivity::class.java)
+                        val u = authRepository.getUserState(
+                            User(uid = authRepository.currentUser.value?.uid)
+                        )
+                        if(u == null) {
+                            val tm = Calendar.getInstance().timeInMillis.toString()
+                            authRepository.updateUserState(
+                                User(
+                                    authRepository.currentUser.value?.uid,
+                                    createdOn = tm,
+                                    updatedOn = tm
+                                )
+                            )
+                            updateState(SignupState.REFERRAL_CODE)
+                        }
+                        else { updateState(SignupState.AUTHENTICATED) }
                     } catch (e: Exception) {
                         Log.d(TAG, "Error Sigin with Exception: $e")
                     }
@@ -120,11 +148,16 @@ class LoginViewModel(
 
     }
 
-    fun verifyOTP(): Boolean{
-        return activityRef.get()?.let {
-            (Utils.verifyNonEmpty(it.applicationContext, otpCode, "OTP"))
-        } ?: false
+    fun onReferralCodeEntered(){
 
+    }
+
+    fun verifyOTP(): Boolean{
+        return Utils.verifyNonEmpty(activity.applicationContext, otpCode, "OTP")
+    }
+
+    fun updateState(s: SignupState){
+        signupStateLive.postValue(s)
     }
 
 }

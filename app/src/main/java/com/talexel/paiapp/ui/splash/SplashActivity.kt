@@ -9,6 +9,7 @@ import androidx.lifecycle.ViewModelProviders
 import com.talexel.paiapp.R
 import com.talexel.paiapp.data.database.repositories.AuthRepository
 import com.talexel.paiapp.data.network.FirebaseAuthApi
+import com.talexel.paiapp.data.network.FirestoreApi
 import com.talexel.paiapp.databinding.ActivitySplashBinding
 import com.talexel.paiapp.ui.interfaces.SplashUIUpdator
 import com.talexel.paiapp.ui.login.LoginActivity
@@ -25,7 +26,9 @@ class SplashActivity : AppCompatActivity(), SplashUIUpdator {
         )
 
         val api = FirebaseAuthApi()
-        val repository = AuthRepository(api)
+        val fStoreApi = FirestoreApi()
+
+        val repository = AuthRepository(api, fStoreApi)
         val factory = LoginViewModelFactory { SplashViewModel(repository) }
         val viewModel = ViewModelProviders.of(this, factory)[SplashViewModel::class.java]
 

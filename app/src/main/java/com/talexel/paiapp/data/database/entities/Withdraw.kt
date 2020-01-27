@@ -6,5 +6,6 @@ import androidx.room.Entity
 data class Withdraw(
     var withdrawId: String? = null,
     var amountWithdrawn: String? = null,
+    var withdrawStatus: WithdrawStatus? = null,
     var createdOn: String? = null
 )

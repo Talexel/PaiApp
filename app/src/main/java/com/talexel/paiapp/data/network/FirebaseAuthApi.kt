@@ -12,20 +12,9 @@ class FirebaseAuthApi {
     private val firebaseAuth by lazy {
         FirebaseAuth.getInstance()
     }
-    private val firebaseStore by lazy {
-        FirebaseFirestore.getInstance()
-    }
 
     suspend fun signInWithPhoneNumber(authCredential: PhoneAuthCredential)
             = firebaseAuth.signInWithCredential(authCredential).await()
-    suspend fun updateUserState(u: User): DocumentSnapshot? {
-        val d = firebaseStore
-            .collection(FirebasePathDescriptor.USER_PATH)
-            .document(u.toMap()[User.PRIMARY_KEY]!!)
-
-            d.set(u).await()
-        return d.get().await()
-    }
 
     fun signOut() = firebaseAuth.signOut()
     fun getCurrentUser() = firebaseAuth.currentUser
