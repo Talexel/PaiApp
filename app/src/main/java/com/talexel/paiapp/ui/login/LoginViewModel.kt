@@ -123,7 +123,7 @@ class LoginViewModel(
             if(verifyOTP()) {
                 CoroutineScope(Dispatchers.Main).launch {
                     try {
-                        authRepository.signIn(it)
+                        val ar = authRepository.signIn(it)
                         val u = authRepository.getUserState(
                             User(uid = authRepository.currentUser.value?.uid)
                         )

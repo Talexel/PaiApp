@@ -21,6 +21,8 @@ class LoginActivity : AppCompatActivity() {
     private lateinit var loginBinding: ActivityLoginBinding
     private lateinit var viewModel: LoginViewModel
 
+    private var stateRunner = hashMapOf<LoginViewModel.Companion.SignupState, () -> Unit>()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -28,6 +30,8 @@ class LoginActivity : AppCompatActivity() {
         val fStoreApi = FirestoreApi()
         val repository = AuthRepository(api, fStoreApi)
         val factory = LoginViewModelFactory {LoginViewModel(this, repository)}
+
+        initStateUpdater()
 
         viewModel = ViewModelProviders.of(this, factory)[LoginViewModel::class.java]
         addSignUpListener()
@@ -39,12 +43,7 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun updateSignUpView(v: LoginViewModel.Companion.SignupState){
-        if(v != LoginViewModel.Companion.SignupState.PHONE_SCREEN) loginBinding.llPhoneNumber.visibility = View.GONE else loginBinding.llPhoneNumber.visibility = View.VISIBLE
-        if(v != LoginViewModel.Companion.SignupState.OTP_SCREEN) loginBinding.llOtp.visibility = View.GONE else loginBinding.llOtp.visibility = View.VISIBLE
-        if(v == LoginViewModel.Companion.SignupState.AUTHENTICATED) {
-            Log.d(TAG, "Called UpdateSignUpView for Authenticated State")
-            changeOnAuthenticated(MainActivity::class.java)
-        }
+        stateRunner[v]?.invoke()
     }
 
     private fun updateState(v: LoginViewModel.Companion.SignupState) {
@@ -65,10 +64,42 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
+    fun initStateUpdater(){
+        stateRunner[LoginViewModel.Companion.SignupState.PHONE_SCREEN] =  this::phoneVisual
+        stateRunner[LoginViewModel.Companion.SignupState.OTP_SCREEN] =  this::otpVisual
+        stateRunner[LoginViewModel.Companion.SignupState.REFERRAL_CODE] =  this::referralCodeVisual
+        stateRunner[LoginViewModel.Companion.SignupState.AUTHENTICATED] =  this::changeOnAuthenticated
+    }
 
-    fun<T> changeOnAuthenticated(cls: Class<T>) {
+    fun removeVisual(i: Int){
+        findViewById<View>(i).visibility = View.GONE
+    }
+
+    fun addVisual(i: Int) {
+        findViewById<View>(i).visibility = View.VISIBLE
+    }
+
+    fun otpVisual(){
+        removeVisual(R.id.ll_phone_number)
+        removeVisual(R.id.ll_referral_code)
+        addVisual(R.id.ll_otp)
+    }
+
+    fun phoneVisual(){
+        removeVisual(R.id.ll_referral_code)
+        removeVisual(R.id.ll_otp)
+        addVisual(R.id.ll_phone_number)
+    }
+
+    fun referralCodeVisual(){
+        removeVisual(R.id.ll_phone_number)
+        removeVisual(R.id.ll_otp)
+        addVisual(R.id.ll_referral_code)
+    }
+
+    fun changeOnAuthenticated() {
         Toast.makeText(this, "Updated the View on OTP Screen", Toast.LENGTH_LONG).show()
-        Intent(this, cls).let {
+        Intent(this, MainActivity::class.java).let {
             it.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             Log.d(TAG, "__CALLING__ Activity Login...")
             startActivity(it)
