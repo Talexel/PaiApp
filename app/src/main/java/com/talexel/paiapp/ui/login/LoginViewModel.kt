@@ -10,8 +10,10 @@ import androidx.lifecycle.ViewModel
 import com.google.firebase.FirebaseException
 import com.google.firebase.auth.PhoneAuthCredential
 import com.google.firebase.auth.PhoneAuthProvider
+import com.talexel.paiapp.data.database.entities.ReferralInfo
 import com.talexel.paiapp.data.database.entities.User
 import com.talexel.paiapp.data.database.repositories.AuthRepository
+import com.talexel.paiapp.exceptions.UserNotAddedException
 import com.talexel.paiapp.ui.interfaces.PhoneNumberSignUpInterface
 import com.talexel.paiapp.ui.spin.MainActivity
 import com.talexel.paiapp.utils.Utils
@@ -19,6 +21,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.lang.Exception
+import java.lang.IllegalArgumentException
 import java.lang.ref.WeakReference
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -37,6 +40,7 @@ class LoginViewModel(
             PHONE_SCREEN(0),
             OTP_SCREEN(1),
             AUTHENTICATED(2),
+            SIGNUP(3),
             REFERRAL_CODE(999);
 
             companion object {
@@ -123,23 +127,15 @@ class LoginViewModel(
             if(verifyOTP()) {
                 CoroutineScope(Dispatchers.Main).launch {
                     try {
-                        val ar = authRepository.signIn(it)
-                        val u = authRepository.getUserState(
-                            User(uid = authRepository.currentUser.value?.uid)
-                        )
-                        if(u == null) {
-                            val tm = Calendar.getInstance().timeInMillis.toString()
-                            authRepository.updateUserState(
-                                User(
-                                    authRepository.currentUser.value?.uid,
-                                    createdOn = tm,
-                                    updatedOn = tm
-                                )
-                            )
-                            updateState(SignupState.REFERRAL_CODE)
-                        }
-                        else { updateState(SignupState.AUTHENTICATED) }
-                    } catch (e: Exception) {
+                        val u = authRepository.signIn(it)
+                        u.uid?.let{
+                            when(u.referralInfo?.referralStatus) {
+                                ReferralInfo.Companion.ReferralStatus.NIL -> updateState(SignupState.SIGNUP)
+                                ReferralInfo.Companion.ReferralStatus.REJECTED,
+                                ReferralInfo.Companion.ReferralStatus.PROVIDED -> updateState(SignupState.AUTHENTICATED)
+                            }
+                        } ?: throw IllegalArgumentException()
+                    } catch (e: UserNotAddedException) {
                         Log.d(TAG, "Error Sigin with Exception: $e")
                     }
                 }
@@ -148,15 +144,12 @@ class LoginViewModel(
 
     }
 
-    fun onReferralCodeEntered(){
-
-    }
-
     fun verifyOTP(): Boolean{
         return Utils.verifyNonEmpty(activity.applicationContext, otpCode, "OTP")
     }
 
     fun updateState(s: SignupState){
+        Log.d(TAG, "Updated Login State to: $s")
         signupStateLive.postValue(s)
     }
 

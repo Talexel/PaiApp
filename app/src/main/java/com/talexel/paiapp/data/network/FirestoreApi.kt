@@ -14,7 +14,7 @@ class FirestoreApi {
     suspend fun updateUserState(u: User): DocumentSnapshot? {
         val d = firebaseStore
             .collection(FirebasePathDescriptor.USER_PATH)
-            .document(u.toMap()[User.PRIMARY_KEY]!!)
+            .document(u.uid.toString())
 
         d.set(u).await()
         return d.get().await()
@@ -23,7 +23,7 @@ class FirestoreApi {
     suspend fun getUserState(u: User): DocumentSnapshot? {
         val d = firebaseStore
             .collection(FirebasePathDescriptor.USER_PATH)
-            .document(u.toMap()[User.PRIMARY_KEY]!!)
+            .document(u.uid.toString())
         return d.get().await()
     }
 

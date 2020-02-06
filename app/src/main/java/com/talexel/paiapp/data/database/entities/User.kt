@@ -9,7 +9,8 @@ data class User(
     @PrimaryKey(autoGenerate = true)
     var uid: String? = null,
     var userEmail: String? = null,
-    var referralCode: String? = null,
+    var userPhoneNumber: String? = null,
+    var referralInfo: ReferralInfo? = ReferralInfo(),
     var createdOn: String? = null,
     var updatedOn: String? = null
 ) {
@@ -23,14 +24,5 @@ data class User(
 
         val PRIMARY_KEY = UID
     }
-
-    @Exclude
-    fun toMap() = hashMapOf(
-        UID to uid,
-        USER_EMAIL to userEmail,
-        REFERRAL_CODE to referralCode,
-        CREATED_ON to createdOn,
-        UPDATED_ON to updatedOn
-    )
 
 }

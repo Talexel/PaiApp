@@ -1,5 +1,7 @@
 package com.talexel.paiapp.ui.interfaces
 
+import com.talexel.paiapp.ui.splash.SplashViewModel
+
 interface SplashUIUpdator {
-    fun<T> updateUI(cls: Class<T>)
+    fun updateState(s: SplashViewModel.Companion.SplashGoState)
 }

@@ -14,7 +14,11 @@ import com.talexel.paiapp.data.database.repositories.AuthRepository
 import com.talexel.paiapp.data.network.FirebaseAuthApi
 import com.talexel.paiapp.data.network.FirestoreApi
 import com.talexel.paiapp.databinding.ActivityLoginBinding
+import com.talexel.paiapp.ui.signup.SignupActivity
 import com.talexel.paiapp.ui.spin.MainActivity
+import com.talexel.paiapp.utils.addVisual
+import com.talexel.paiapp.utils.removeVisual
+import kotlinx.android.synthetic.main.activity_login.*
 
 class LoginActivity : AppCompatActivity() {
 
@@ -22,6 +26,9 @@ class LoginActivity : AppCompatActivity() {
     private lateinit var viewModel: LoginViewModel
 
     private var stateRunner = hashMapOf<LoginViewModel.Companion.SignupState, () -> Unit>()
+
+    private val SIGNUP_CLASS = SignupActivity::class.java
+    private val MAIN_CLASS = MainActivity::class.java
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,6 +54,7 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun updateState(v: LoginViewModel.Companion.SignupState) {
+        Log.d(TAG, "Updated Status to: $v")
         updateSignUpView(v)
     }
 
@@ -65,36 +73,35 @@ class LoginActivity : AppCompatActivity() {
     }
 
     fun initStateUpdater(){
-        stateRunner[LoginViewModel.Companion.SignupState.PHONE_SCREEN] =  this::phoneVisual
-        stateRunner[LoginViewModel.Companion.SignupState.OTP_SCREEN] =  this::otpVisual
+        stateRunner[LoginViewModel.Companion.SignupState.PHONE_SCREEN] = this::phoneVisual
+        stateRunner[LoginViewModel.Companion.SignupState.OTP_SCREEN] = this::otpVisual
         stateRunner[LoginViewModel.Companion.SignupState.REFERRAL_CODE] =  this::referralCodeVisual
         stateRunner[LoginViewModel.Companion.SignupState.AUTHENTICATED] =  this::changeOnAuthenticated
-    }
-
-    fun removeVisual(i: Int){
-        findViewById<View>(i).visibility = View.GONE
-    }
-
-    fun addVisual(i: Int) {
-        findViewById<View>(i).visibility = View.VISIBLE
+        stateRunner[LoginViewModel.Companion.SignupState.SIGNUP] = this::changeOnSignUp
     }
 
     fun otpVisual(){
-        removeVisual(R.id.ll_phone_number)
-        removeVisual(R.id.ll_referral_code)
-        addVisual(R.id.ll_otp)
+
+        ll_phone_number.removeVisual()
+        ll_otp.addVisual()
     }
 
     fun phoneVisual(){
-        removeVisual(R.id.ll_referral_code)
-        removeVisual(R.id.ll_otp)
-        addVisual(R.id.ll_phone_number)
+        ll_otp.removeVisual()
+        ll_phone_number.addVisual()
+    }
+
+    fun changeOnSignUp(){
+        Intent(this, SIGNUP_CLASS).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            Log.d(TAG, "__CALLING__ Activity Signup")
+            startActivity(this)
+        }
     }
 
     fun referralCodeVisual(){
-        removeVisual(R.id.ll_phone_number)
-        removeVisual(R.id.ll_otp)
-        addVisual(R.id.ll_referral_code)
+        ll_phone_number.removeVisual()
+        ll_otp.removeVisual()
     }
 
     fun changeOnAuthenticated() {

@@ -89,35 +89,6 @@
 
         </LinearLayout>
 
-
-        <LinearLayout
-            android:id="@+id/ll_referral_code"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
-
-            <TextView
-                android:id="@+id/referralCodeText"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                app:itemCount="6"
-                app:viewType="line"
-                style="@style/PinWidget.PinView"
-                android:text="@={loginViewModel.otpCode}"/>
-
-            <com.google.android.material.button.MaterialButton
-                style="@style/ButtonCustom"
-                android:text="Submit"
-                android:layout_marginTop="8dp"
-                android:onClick="@{(v)->loginViewModel.onReferralCodeEntered()"/>
-        </LinearLayout>
-
-
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </layout>
